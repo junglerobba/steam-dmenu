@@ -10,7 +10,8 @@ import vdf
 
 def main() -> None:
     args = parse_arguments()
-    returncode, stdout = open_dmenu(args.dmenu, get_games(args.library))
+    dmenu = args.dmenu.replace('$HOME', '~').replace('~', expanduser('~'))
+    returncode, stdout = open_dmenu(dmenu, get_games(args.library))
     appid = stdout.decode().split(':')[0]
     if returncode == 1 or not appid or not appid.isdigit():
         sys.exit()
@@ -41,7 +42,7 @@ def parse_arguments() -> argparse.Namespace:
 def get_games(libraries: List[str]) -> str:
     games = ""
     for library in libraries:
-        library = library.replace('~', expanduser('~'))
+        library = library.replace('$HOME', '~').replace('~', expanduser('~'))
         apps = glob.glob('{}/steamapps/appmanifest_*.acf'.format(library))
         for file in apps:
             with open(file) as game:
