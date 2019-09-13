@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import sys
 import glob
 from os.path import expanduser
@@ -8,12 +9,26 @@ from typing import Tuple
 import vdf
 
 def main() -> None:
-    returncode, stdout = open_dmenu(get_games())
+    args = parse_arguments()
+    returncode, stdout = open_dmenu(args.dmenu, get_games())
 
     if returncode == 1:
         sys.exit()
     else:
         launch_game(stdout.decode().split(':')[0])
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Launch installed Steam games using dmenu')
+    parser.add_argument(
+        '--dmenu',
+        '-d',
+        dest='dmenu',
+        default='dmenu -i',
+        help='Custom dmenu command (default is \'dmenu -i\')'
+    )
+    parsed_args = parser.parse_args()
+
+    return parsed_args
 
 def get_games() -> str:
     apps = glob.glob('{}/.local/share/Steam/steamapps/appmanifest_*.acf'.format(expanduser('~')))
@@ -25,11 +40,9 @@ def get_games() -> str:
 
     return games
 
-def open_dmenu(games: str) -> Tuple[int, bytes]:
+def open_dmenu(dmenu: str, games: str) -> Tuple[int, bytes]:
     dmenu = Popen(
-        [
-            'dmenu',
-        ],
+        dmenu.split(),
         stdin=PIPE,
         stdout=PIPE
     )
