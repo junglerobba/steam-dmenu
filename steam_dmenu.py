@@ -5,17 +5,17 @@ import sys
 import glob
 from os.path import expanduser
 from subprocess import Popen, PIPE
-from typing import Tuple
+from typing import List, Tuple
 import vdf
 
 def main() -> None:
     args = parse_arguments()
-    returncode, stdout = open_dmenu(args.dmenu, get_games())
-
-    if returncode == 1:
+    returncode, stdout = open_dmenu(args.dmenu, get_games(args.library))
+    appid = stdout.decode().split(':')[0]
+    if returncode == 1 or not appid or not appid.isdigit():
         sys.exit()
     else:
-        launch_game(stdout.decode().split(':')[0])
+        launch_game(appid)
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Launch installed Steam games using dmenu')
@@ -26,17 +26,27 @@ def parse_arguments() -> argparse.Namespace:
         default='dmenu -i',
         help='Custom dmenu command (default is \'dmenu -i\')'
     )
+    parser.add_argument(
+        '--libraries',
+        '-l',
+        dest='library',
+        nargs='*',
+        default=['~/.local/share/Steam'],
+        help='Steam library location[s] (default is \'~/.local/share/Steam\')'
+    )
     parsed_args = parser.parse_args()
 
     return parsed_args
 
-def get_games() -> str:
-    apps = glob.glob('{}/.local/share/Steam/steamapps/appmanifest_*.acf'.format(expanduser('~')))
+def get_games(libraries: List[str]) -> str:
     games = ""
-    for file in apps:
-        with open(file) as game:
-            appstate = vdf.parse(game)['AppState']
-            games += '{}: {}\n'.format(appstate['appid'], appstate['name'])
+    for library in libraries:
+        library = library.replace('~', expanduser('~'))
+        apps = glob.glob('{}/steamapps/appmanifest_*.acf'.format(library))
+        for file in apps:
+            with open(file) as game:
+                appstate = vdf.parse(game)['AppState']
+                games += '{}: {}\n'.format(appstate['appid'], appstate['name'])
 
     return games
 
