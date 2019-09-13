@@ -3,6 +3,7 @@
 import argparse
 import sys
 import glob
+import re
 from os.path import expanduser
 from subprocess import Popen, PIPE
 from typing import List, Tuple
@@ -40,16 +41,17 @@ def parse_arguments() -> argparse.Namespace:
     return parsed_args
 
 def get_games(libraries: List[str]) -> str:
-    games = ""
+    games = []
     for library in libraries:
         library = library.replace('$HOME', '~').replace('~', expanduser('~'))
         apps = glob.glob('{}/steamapps/appmanifest_*.acf'.format(library))
         for file in apps:
             with open(file) as game:
                 appstate = vdf.parse(game)['AppState']
-                games += '{}: {}\n'.format(appstate['appid'], appstate['name'])
+                games.append('{}: {}'.format(appstate['appid'], appstate['name']))
 
-    return games
+    games.sort(key=lambda x: re.sub('^[0-9]+: ', '', x))
+    return '\n'.join(games)
 
 def open_dmenu(dmenu: str, games: str) -> Tuple[int, bytes]:
     dmenu = Popen(
