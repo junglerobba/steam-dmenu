@@ -6,6 +6,7 @@ Reads installed Steam games from one or multiple Steam libraries and offers a se
 - Steam (obviously)
 - python 3
 - python-vdf for reading Valve's VDF format
+- xdg-open
 - some dmenu compatible application (dmenu, rofi, bemenu, wofi...)
 
 ## Configuration

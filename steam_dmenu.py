@@ -63,7 +63,7 @@ def open_dmenu(dmenu: str, games: str) -> Tuple[int, bytes]:
     return dmenu.returncode, stdout
 
 def launch_game(appid: str):
-    Popen(['steam', 'steam://run/{}'.format(appid)])
+    Popen(['xdg-open', 'steam://run/{}'.format(appid)])
 
 if __name__ == "__main__":
     main()
